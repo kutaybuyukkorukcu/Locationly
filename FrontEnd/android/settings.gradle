@@ -1,13 +1,9 @@
-rootProject.name = 'udemy'
+rootProject.name = 'FirstProject'
 
 include ':app'
 
-include ':react-native-localization', ':app'
-project(':react-native-localization').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-localization/android')
-
-
-include ':react-native-google-places'
-project(':react-native-google-places').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-google-places/android')
-
 include ':react-native-maps'
 project(':react-native-maps').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-maps/lib/android')
+
+include ':react-native-community-geolocation'
+project(':react-native-community-geolocation').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-community/geolocation/android')
