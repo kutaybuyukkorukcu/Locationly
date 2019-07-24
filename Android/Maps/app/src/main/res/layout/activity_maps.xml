@@ -46,8 +46,8 @@
             android:layout_toEndOf="@+id/button"
             android:layout_weight="4"
             android:ems="10"
-            android:inputType="textPersonName"
-            android:text="Name" />
+            android:inputType = "textEmailAddress|textNoSuggestions"
+            android:hint="@string/mesainizi_giriniz"/>
 
     </RelativeLayout>
 
