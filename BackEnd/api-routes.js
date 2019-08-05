@@ -10,16 +10,25 @@ router.get('/', function(req, res) {
     });
 });
 
-// Import contact controller
 
-var messageController = require('./messageController');
-
-// Contact routes
+var messageController = require('./Controller/messageController');
+var userController = require('./Controller/userController');
 
 router.route('/messages')
     .get(messageController.index)
     .post(messageController.new);
 
-// Export API routes
+router.route('/distMessages')
+	.post(messageController.dist);
+
+router.route('/users')
+    .get(userController.index)
+    .post(userController.new);
+
+router.route('/users/:id')
+    .get(userController.index);
+
+router.route('/addMarker')
+    .post(userController.seenMarkers);
 
 module.exports = router;

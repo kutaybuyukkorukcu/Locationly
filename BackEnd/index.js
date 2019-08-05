@@ -1,19 +1,10 @@
-// Import express
 let express = require('express');
-
-// Import Body parser
 
 let bodyParser = require('body-parser');
 
-// Import Mongoose
-
 let mongoose = require('mongoose');
 
-// Initialize the app
-
 let app = express();
-
-// Import routes
 
 let apiRoutes = require("./api-routes")
 
@@ -25,24 +16,15 @@ app.use(bodyParser.urlencoded({
 
 app.use(bodyParser.json());
 
-// Connect to Mongoose and set connection variable
-
-mongoose.connect('mongodb://localhost/projectx');
-var db = mongoose.connection;
-
-// Setup server port
-
 var port = process.env.PORT || 8082;
 
-// Send message for default URL
+mongoose.connect('mongodb://localhost/projectx');
 
+// Send message for default URL
 app.get('/', (req, res) => res.send('/ calisti'));
 
 // Use Api routes in the App
-
-app.use('/api', apiRoutes)
-
-// Launch app to listen to specified port
+app.use('/api', apiRoutes);
 
 app.listen(port, function() {
     console.log("Running projectX on port " + port);
