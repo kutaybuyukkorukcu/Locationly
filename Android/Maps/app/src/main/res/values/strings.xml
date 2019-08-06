@@ -1,5 +1,25 @@
 <resources>
     <string name="app_name">Mapsdeneme</string>
     <string name="title_activity_maps">Map</string>
-    <string name="mesainizi_giriniz">Mesainizi giriniz.</string>
+    <string name="mesanizi_giriniz">Mesajınızı giriniz.</string>
+    <string name="title_activity_first">FirstActivity</string>
+
+    <string name="girisusername">Username</string>
+    <string name="girispass">Password</string>
+
+
+
+    <string name="kayitname">İsim</string>
+    <string name="kayitlastname">Soyisim</string>
+    <string name="kayitusername">Username</string>
+    <string name="kayitemail">E-mail</string>
+
+    <string name="kayitpass">Password</string>
+    <string name="kayitbuton">Kayıt ol</string>
+
+    <string name="email">E-mail</string>
+
+    <string name="giris">Giris Yap</string>
+    <string name="kayit">Kayıt Ol</string>
+
 </resources>

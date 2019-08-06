@@ -1,55 +1,46 @@
 package com.egemen.mapsdeneme;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.ColorInt;
-import android.support.annotation.DrawableRes;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
+import android.view.inputmethod.InputMethodManager;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.gson.JsonObject;
+import com.google.gson.Gson;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, Serializable,
         GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
@@ -59,107 +50,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LocationListener locationListener;
     EditText editText;
     String message;
-    Button button;
+    Button button,button_iptal;
+    MarkerManager markerManager;
     private Marker marker;
-    private Map<String, MarkerOptions> markerMap = new HashMap<>();
     private static final int REQUEST_ACCESS_FINE_LOCATION = 1;
-    private static String[] PERMISSIONS_MAPS = {
-            Manifest.permission.ACCESS_FINE_LOCATION};
-
-    String APIUrl = "http://52.143.175.25:8082/";
-
-    public JsonObject createJSON(String mesaj, double lat, double lon) {
-        JsonObject object = new JsonObject();
-
-        object.addProperty("message", mesaj);
-        JsonObject object1 = new JsonObject();
-        object1.addProperty("lat", lat);
-        object1.addProperty("lon", lon);
-
-        object.add("location", object1);
+    private static String[] PERMISSIONS_MAPS = {Manifest.permission.ACCESS_FINE_LOCATION};
+    NotificationManagerCompat notManager;
+    NotificationCompat.Builder notBuilder;
+    MapsActivity instance;
 
 
-        return object;
-    }
 
-    public void postMessage(String mes, double lat, double lon) {
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    /*
+    Intent resultIntent = new Intent(this, MapsActivity.class);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addNextIntentWithParentStack(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(APIUrl).addConverterFactory(GsonConverterFactory.create()).build();
-        Api apis = retrofit.create(Api.class);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1")
+                .setSmallIcon(R.mipmap.ic_launcher_loca)
+                .setContentTitle("Bildirim")
+                .setContentText("Deneme içeriği")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(resultPendingIntent)
+                .setAutoCancel(true);
 
-        Call<JsonObject> call = apis.at(createJSON(mes, lat, lon));
-
-        call.enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                try {
-                    Log.d("snow::::", response.body().toString());
-                    System.out.println("Mesaj Gönderildi");
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                System.out.println("Mesaj gönderilemedi" + " " + t.getMessage());
-            }
-        });
-    }
-
-    public void putMarkers() {
-        //Set markerSet = markerMap.entrySet();
-        Iterator it = markerMap.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry me = (Map.Entry) it.next();
-            mMap.addMarker((MarkerOptions) me.getValue());
-        }
-    }
-
-    public void getDistMessages(double lat, double lon) {
-
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(APIUrl).addConverterFactory(GsonConverterFactory.create()).build();
-        Api apis = retrofit.create(Api.class);
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+     */
+    // Local
+    //String APIUrl = "http://192.168.16.232:8082/";
 
 
-        JsonObject resObj = new JsonObject();
-        JsonObject object1 = new JsonObject();
-        object1.addProperty("lat", lat);
-        object1.addProperty("lon", lon);
-        resObj.add("location", object1);
-        Call<JsonObject[]> call = apis.dist(resObj);
-
-        call.enqueue(new Callback<JsonObject[]>() {
-            @Override
-            public void onResponse(Call<JsonObject[]> call, Response<JsonObject[]> response) {
-                //Log.d("snow::::");
-                if (response.body() == null) {
-                    System.out.println("Message not found -getDistMessages()");
-                } else {
-                    //System.out.println("Mesaj Gönderildi" + response.body()[0].get("location").getAsJsonObject().get("lat"));
-                    //System.out.println("ID::::::" + response.body()[0].get("_id").toString());
-                    markerMap.clear();
-                    for (JsonObject it : response.body()) {
-                        LatLng messageLoc = new LatLng(Double.valueOf(it.get("location").getAsJsonObject().get("lat").toString()), Double.valueOf(it.get("location").getAsJsonObject().get("lon").toString()));
-                        MarkerOptions m = new MarkerOptions().title(it.get("message").toString()).position(messageLoc);
-                        try {
-                            markerMap.put(it.get("_id").toString(), m);
-                        } catch (Exception e) {
-                            System.out.println("Zaten var" + e.getMessage());
-                        }
-                    }
-                    putMarkers();
-                }
-
-            }
-
-            @Override
-            public void onFailure(Call<JsonObject[]> call, Throwable t) {
-                System.out.println("Mesaj gönderilemedi" + " " + t.getMessage());
-            }
-        });
-    }
-
+    /*
     public void getAllMessages() {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(APIUrl)
@@ -172,7 +96,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         call.enqueue(new Callback<Server>() {
             @Override
             public void onResponse(Call<Server> call, Response<Server> response) {
-                List<Datum> dat;
                 if (response.body() == null) {
                     System.out.println("Message Not Found -getAllMessages()");
                     return;
@@ -181,7 +104,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 List<Server> results = new ArrayList<>();
                 for (int i = 0; i < dat.size(); i++) {
                     if (dat.get(i) != null) {
-                        results.add(new Server(dat.get(i).message, dat.get(i).location));
+                        results.add(new Server(dat.get(i).message, dat.get(i).locationType));
                     }
                 }
                 for (Server it : results) {
@@ -197,22 +120,83 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
+    */
 
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.app_name);
+            String description = getString(R.string.common_google_play_services_install_title);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("1", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
 
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         marker = null;
+        createNotificationChannel();
+        Intent resultIntent = new Intent(this, MapsActivity.class);
+/*
+        ///////////////////////////////////////////////////*
+        User user = new User("gencaysyn", "Gençay", "Sayın", "123456", "gencaysyn@gmail.com");
+        ///////////////////////////////////////////////////
+        Gson gson = new Gson();
+        String jsonStr = gson.toJson(user);
+
+        final ApiManager apm = new ApiManager();
+        System.out.println("///////////" + jsonStr);
+        apm.request(apm.api.postUser(user), new ResponseHandler() {
+            @Override
+            public void onSucces(ApiHandler data, int statusCode, String message) {
+                if(statusCode == 200){
+                    Log.d("Deneme","Data:"+data.getUser().toString());
+                }
+            }
+
+            @Override
+            public void onFail(Call<ApiHandler> call, Throwable t) {
+
+            }
 
 
+        });
+        /////////////////////////////////////////////////////////
+*/
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addNextIntentWithParentStack(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        notBuilder = new NotificationCompat.Builder(this, "1")
+                .setSmallIcon(R.mipmap.ic_launcher_loca)
+                .setContentTitle("Bulunduğun konumda yeni mesajlar var!")
+                .setContentText("Mesajları görmek için tıkla")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(resultPendingIntent)
+                .setAutoCancel(true);
+
+        notManager = NotificationManagerCompat.from(this);
+        //Cihaz adını alma kodu
+        //Settings.Secure.getString(getContentResolver())
+        //notManager.notify(1, notBuilder.build());
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        editText = (EditText) findViewById(R.id.editText);
-        button = (Button) findViewById(R.id.button);
+        if (mapFragment != null)
+            mapFragment.getMapAsync(this);
+        editText = findViewById(R.id.editText);
+        button = findViewById(R.id.button);
+        button_iptal = findViewById(R.id.button3);
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -221,78 +205,69 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (marker == null || message.length() == 0)
                     Toast.makeText(MapsActivity.this, "Marker ya da Mesaj Eklenmedi!", Toast.LENGTH_SHORT).show();
                 else {
-
-                    postMessage(message, marker.getPosition().latitude, marker.getPosition().longitude);
-                    marker.setTitle(message);
+                    String deviceName = Settings.Secure.getString(getContentResolver(), "bluetooth_name");
+                    markerManager.postMessage(new MessageType(deviceName, message, new LocationType(marker.getPosition().latitude, marker.getPosition().longitude)));
+                    marker.setTitle(deviceName);
+                    marker.setSnippet(message);
                     editText.setText("");
                     Toast.makeText(getApplicationContext(), "Mesaj Oluşturuldu.", Toast.LENGTH_SHORT).show();
+                    closeKeyboard();
                     //getDistMessages(marker.getPosition().latitude, marker.getPosition().longitude);
                 }
+                switchLayoutProperty(1);
             }
         });
 
-        //getAllMessages();
 
-        //getDistMessages(40.9745427, 29.1019080);
 
-        //postMessage("ali",25,35);
+        button_iptal.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                editText.setText("");
+                //marker=null;
+                marker.remove();
+                closeKeyboard();
+                switchLayoutProperty(1);
+            }
+        });
+
+        instance = this;
+
+
+
+
     }
 
-    private BitmapDescriptor bitmapDescriptorFromVector(Context context, @DrawableRes int vectorDrawableResourceId) {
-        Drawable background = ContextCompat.getDrawable(context, vectorDrawableResourceId);
-        background.setBounds(0, 0, background.getIntrinsicWidth(), background.getIntrinsicHeight());
-        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorDrawableResourceId);
-        vectorDrawable.setBounds(40, 20, vectorDrawable.getIntrinsicWidth() + 40, vectorDrawable.getIntrinsicHeight() + 20);
-        Bitmap bitmap = Bitmap.createBitmap(background.getIntrinsicWidth(), background.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        background.draw(canvas);
-        vectorDrawable.draw(canvas);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
-    }
-
-    private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color) {
-        Drawable vectorDrawable = ResourcesCompat.getDrawable(getResources(), id, null);
-        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
-                vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        DrawableCompat.setTint(vectorDrawable, color);
-        vectorDrawable.draw(canvas);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
-    }
 
     @Override
     public void onMapReady(final GoogleMap googleMap) {
-
         mMap = googleMap;
-        //final BitmapDescriptor icon = bitmapDescriptorFromVector(this, R.drawable.flag_icon);
-        /*
-        if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) &&
-                (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            return;
-        }*/
+        markerManager = new MarkerManager(mMap,getApplicationContext());
 
         if (checkPermission()) {
             try {
                 mMap.setMyLocationEnabled(true);
                 mMap.setOnMyLocationButtonClickListener(this);
                 mMap.setOnMyLocationClickListener(this);
-                //LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+                /*LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                 Criteria criteria = new Criteria();
                 locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
                 Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
                 if (location != null) {
                     System.out.println("Merak " + location.getLatitude() + location.getLongitude());
                     getDistMessages(location.getLatitude(), location.getLongitude());
-                }
+                }*/
 
             } catch (Exception e) {
                 System.out.println("Mavi nokta hatası" + e.getMessage());
             }
         } else {
-            verifyMapsPermissions(this);
+            button.setEnabled(false);
+            System.out.println("reddedildi 2");
+            //verifyMapsPermissions(this);
+
+
 
         }
 
@@ -302,18 +277,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onLocationChanged(Location location) {
-                //mMap.clear();
                 //LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
                 //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
-                getDistMessages(location.getLatitude(), location.getLongitude());
+                markerManager.getDistMessages(location.getLatitude(),location.getLongitude());
                 System.out.println("Lokasyon değişti");
-                Toast.makeText(getApplicationContext(),"Lokasyon değişti",Toast.LENGTH_LONG).show();
-                System.out.println("-----------" + markerMap.size());
-//                for (String name: markerMap.keySet()){
-//                    String key = name;
-//                    String value = markerMap.get(name).toString();
-//                    System.out.println(key + "/////// " + value);
-//                }
+
+                //Toast.makeText(getApplicationContext(), "lat:"+location.getLatitude()+"lon:"+location.getLongitude(), Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -332,26 +301,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         };
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT >= 24) {
+            if (!checkPermission()) {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             } else {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-
-                //Location lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                //System.out.println("lastLocation: " + lastLocation);
-                //LatLng userLastLocation = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
-                //mMap.addMarker(new MarkerOptions().title("Your Location").position(userLastLocation));
-                //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLastLocation,15));
+                button.setEnabled(true);
             }
         } else {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-
-            //Location lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            //System.out.println("lastLocation: " + lastLocation);
-            //LatLng userLastLocation = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
-            //mMap.addMarker(new MarkerOptions().title("Your Location").position(userLastLocation));
-            //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLastLocation,15));
         }
 
         mMap.setOnMapClickListener(this);
@@ -371,22 +329,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case REQUEST_ACCESS_FINE_LOCATION: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission granted
-                    if (checkPermission()) {
-                        mMap.setMyLocationEnabled(true);
-                    }
+        if (requestCode == REQUEST_ACCESS_FINE_LOCATION) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted
+                if (checkPermission()) {
+                    mMap.setMyLocationEnabled(true);
                 }
-                break;
             }
-
-
         }
-
-
     }
 
     private boolean checkPermission() {
@@ -406,29 +357,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     PERMISSIONS_MAPS,
                     REQUEST_ACCESS_FINE_LOCATION
             );
-
-
         }
-
     }
-
 
     @Override
     public void onMapClick(LatLng latLng) {
         if (marker != null)
             marker.remove();
-        mMap.addMarker(new MarkerOptions()
+
+        MarkerOptions newMarker = new MarkerOptions()
                 .position(new LatLng(latLng.latitude, latLng.longitude))
-                .icon(vectorToBitmap(R.drawable.flag_icon, Color.parseColor("#A4C639")))
-                .title("Alice Springs"));
-        /*MarkerOptions newMarker = new MarkerOptions()
-                .position(new LatLng(latLng.latitude, latLng.longitude));
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher_flag_location_red));
+        this.marker = mMap.addMarker(newMarker);
+        button.setEnabled(true);
+        System.out.println(latLng.latitude + "---" + latLng.longitude);
 
-       //this.marker = mMap.addMarker(newMarker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-        this.marker = mMap.addMarker(newMarker.icon(icon);
-        System.out.println(latLng.latitude + "---" + latLng.longitude);*/
-
+        switchLayoutProperty(0);
     }
+
     @Override
     public boolean onMyLocationButtonClick() {
         return false;
@@ -436,6 +382,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMyLocationClick(@NonNull Location location) {
-        getDistMessages(location.getAltitude(),location.getLongitude());
+        Toast.makeText(getApplicationContext(), "Güncellendi\n" + "Lon:" + location.getLatitude() + " Lat:" + location.getLongitude(), Toast.LENGTH_SHORT).show();
+        System.out.println("Lat:" + location.getLatitude() + " Lon:" + location.getLongitude());
+        markerManager.getDistMessages(location.getLatitude(), location.getLongitude());
+
+    }
+
+    public void switchLayoutProperty(int value) {
+        //  RelativeLayout relativelayout1;
+        //relativelayout1=(RelativeLayout)findViewById(R.id.relativelayout1);
+
+        RelativeLayout relativelayout1 = findViewById(R.id.relativelayout1);
+
+        ViewGroup.LayoutParams params = relativelayout1.getLayoutParams();
+        android.view.Display display = ((android.view.WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        if (value == 0) {
+            params.height = (display.getHeight() * 3) / 4;
+            relativelayout1.setLayoutParams(params);
+        } else {
+            params.height = display.getHeight();
+            relativelayout1.setLayoutParams(params);
+        }
+    }
+    private void closeKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 }
