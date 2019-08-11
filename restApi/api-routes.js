@@ -13,22 +13,32 @@ router.get('/', function(req, res) {
 
 var messageController = require('./Controller/messageController');
 var userController = require('./Controller/userController');
+var logController = require('./Controller/logController');
 
 router.route('/messages')
     .get(messageController.index)
     .post(messageController.new);
 
-router.route('/distMessages')
-	.post(messageController.dist);
+router.route('/messages/distance')
+	.get(messageController.distance);
 
 router.route('/users')
     .get(userController.index)
     .post(userController.new);
 
+router.route('/users/login')
+    .post(userController.login);
+
 router.route('/users/id')
     .get(userController.index);
 
-router.route('/addMarker')
-    .post(userController.seenMarkers);
+router.route('/users/checkMessages')
+    .post(userController.checkMessages);
+
+router.route('/users/login')
+   .post(userController.login);
+
+router.route('/logs')
+    .post(logController.new);
 
 module.exports = router;

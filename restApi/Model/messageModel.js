@@ -1,8 +1,13 @@
 var mongoose = require('mongoose');
 
+
 var messageSchema = mongoose.Schema({
 
-    deviceName: {
+    userId : {
+        type : String,
+    },
+
+    username: {
         type: String,
     },
 
@@ -10,11 +15,11 @@ var messageSchema = mongoose.Schema({
         type: String,
     },
 
-    location: {
-        type: "Object",
-    }
-});
+    location:{
+       type: 'Object'
+    } 
 
+});
 
 module.exports = mongoose.model('message', messageSchema);
 
@@ -23,8 +28,6 @@ module.exports.get = function(callback, limit) {
 }
 
 /*
-
-
 Not :
 
 near fonksiyonu için gereken index manuel olarak mongodb arayüzünden oluşturuldu. o oluşturulmadan kod doğru çalışmıyor. 

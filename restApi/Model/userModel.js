@@ -14,7 +14,6 @@ var userSchema = mongoose.Schema({
     type : String,
     },
   
-
   username : {
     type : String,
   },
@@ -23,13 +22,17 @@ var userSchema = mongoose.Schema({
     type : String,
   },
 
-  isMarkerSeen : {
+  seenMessages : {
     type : Array
   }
 });
 
-userSchema.statics.findByEmailOrUsername = function(value, usernameV, callback) {
-  return this.find({ $or:[ {email : value}, {username : usernameV} ]}, callback);  
+userSchema.statics.findByEmailOrUsername = function(emailValue, usernameValue, callback) {
+  return this.find({ $or:[ {email : emailValue}, {username : usernameValue} ]}, callback);  
+}
+
+userSchema.statics.findByUsernameOrPassword = function(usernameValue, passwordValue, callback) {
+  return this.find({ $and:[ {username : usernameValue}, {password : passwordValue} ]}, callback);  
 }
 
 module.exports = mongoose.model('user', userSchema);
