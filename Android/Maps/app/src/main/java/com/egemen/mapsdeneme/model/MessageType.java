@@ -1,4 +1,4 @@
-package com.egemen.mapsdeneme;
+package com.egemen.mapsdeneme.model;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -10,9 +10,9 @@ public class MessageType {
     @SerializedName("location")
     @Expose
     private LocationType location;
-    @SerializedName("deviceName")
+    @SerializedName("username")
     @Expose
-    private String deviceName;
+    private String username;
 
     @SerializedName("_id")
     @Expose
@@ -43,19 +43,35 @@ public class MessageType {
         this.location = location;
     }
 
-    public String getDeviceName() {
-        return deviceName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setDeviceName(String deviceName) {
-        this.deviceName = deviceName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public MessageType(String text, String deviceName, LocationType location) {
+    public MessageType(String text, String username, LocationType location) {
         this.text = text;
         this.location = location;
-        this.deviceName = deviceName;
+        this.username = username;
+    }
+
+    public MessageType(String text, String username, double lat, double lon) {
+        this.text = text;
+        this.location = new LocationType(lat,lon);;
+        this.username = username;
     }
 
     public MessageType(){}
+
+    @Override
+    public String toString() {
+        return "MessageType{" +
+                "text='" + text + '\'' +
+                ", location=" + location.getLon()+","+location.getLat() +
+                ", username='" + username + '\'' +
+                ", id='" + id + '\'' +
+                '}';
+    }
 }

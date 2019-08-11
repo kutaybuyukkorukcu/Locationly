@@ -1,4 +1,4 @@
-package com.egemen.mapsdeneme;
+package com.egemen.mapsdeneme.activities;
 
 import android.Manifest;
 import android.app.NotificationChannel;
@@ -7,12 +7,14 @@ import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -29,6 +31,14 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.view.inputmethod.InputMethodManager;
 
+import com.egemen.mapsdeneme.config.AppParameters;
+import com.egemen.mapsdeneme.network.MarkerManager;
+import com.egemen.mapsdeneme.R;
+import com.egemen.mapsdeneme.interfaces.ResponseHandler;
+import com.egemen.mapsdeneme.model.MessageType;
+import com.egemen.mapsdeneme.model.ResponseBody;
+import com.egemen.mapsdeneme.model.UserType;
+import com.egemen.mapsdeneme.network.ApiManager;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -40,7 +50,6 @@ import com.google.gson.Gson;
 
 import java.io.Serializable;
 
-import retrofit2.Call;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, Serializable,
         GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
@@ -55,72 +64,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Marker marker;
     private static final int REQUEST_ACCESS_FINE_LOCATION = 1;
     private static String[] PERMISSIONS_MAPS = {Manifest.permission.ACCESS_FINE_LOCATION};
-    NotificationManagerCompat notManager;
-    NotificationCompat.Builder notBuilder;
     MapsActivity instance;
-
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    /*
-    Intent resultIntent = new Intent(this, MapsActivity.class);
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addNextIntentWithParentStack(resultIntent);
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1")
-                .setSmallIcon(R.mipmap.ic_launcher_loca)
-                .setContentTitle("Bildirim")
-                .setContentText("Deneme içeriği")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(resultPendingIntent)
-                .setAutoCancel(true);
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-     */
-    // Local
-    //String APIUrl = "http://192.168.16.232:8082/";
-
-
-    /*
-    public void getAllMessages() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(APIUrl)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        Api api = retrofit.create(Api.class);
-
-        Call<Server> call = api.cagir(200);
-        call.enqueue(new Callback<Server>() {
-            @Override
-            public void onResponse(Call<Server> call, Response<Server> response) {
-                if (response.body() == null) {
-                    System.out.println("Message Not Found -getAllMessages()");
-                    return;
-                }
-                dat = response.body().getData();
-                List<Server> results = new ArrayList<>();
-                for (int i = 0; i < dat.size(); i++) {
-                    if (dat.get(i) != null) {
-                        results.add(new Server(dat.get(i).message, dat.get(i).locationType));
-                    }
-                }
-                for (Server it : results) {
-                    LatLng messageLoc = new LatLng(it.getLocation().getLat(), it.getLocation().getLon());
-                    mMap.addMarker(new MarkerOptions().title(it.getMessage()).position(messageLoc));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Server> call, Throwable t) {
-                Log.d("---------:", t.getMessage());
-
-            }
-        });
-    }
-    */
+    SharedPreferences prf;
 
     private void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
@@ -145,50 +90,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
         marker = null;
         createNotificationChannel();
-        Intent resultIntent = new Intent(this, MapsActivity.class);
-/*
-        ///////////////////////////////////////////////////*
-        User user = new User("gencaysyn", "Gençay", "Sayın", "123456", "gencaysyn@gmail.com");
-        ///////////////////////////////////////////////////
-        Gson gson = new Gson();
-        String jsonStr = gson.toJson(user);
-
-        final ApiManager apm = new ApiManager();
-        System.out.println("///////////" + jsonStr);
-        apm.request(apm.api.postUser(user), new ResponseHandler() {
-            @Override
-            public void onSucces(ApiHandler data, int statusCode, String message) {
-                if(statusCode == 200){
-                    Log.d("Deneme","Data:"+data.getUser().toString());
-                }
-            }
-
-            @Override
-            public void onFail(Call<ApiHandler> call, Throwable t) {
-
-            }
+        prf = getSharedPreferences("user_details",Context.MODE_PRIVATE);
+        Gson gson=new Gson();
+        String json=prf.getString("user","");
+        AppParameters.appUser=gson.fromJson(json,UserType.class);
 
 
-        });
-        /////////////////////////////////////////////////////////
-*/
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addNextIntentWithParentStack(resultIntent);
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        notBuilder = new NotificationCompat.Builder(this, "1")
-                .setSmallIcon(R.mipmap.ic_launcher_loca)
-                .setContentTitle("Bulunduğun konumda yeni mesajlar var!")
-                .setContentText("Mesajları görmek için tıkla")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(resultPendingIntent)
-                .setAutoCancel(true);
 
-        notManager = NotificationManagerCompat.from(this);
-        //Cihaz adını alma kodu
-        //Settings.Secure.getString(getContentResolver())
-        //notManager.notify(1, notBuilder.build());
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -205,12 +114,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (marker == null || message.length() == 0)
                     Toast.makeText(MapsActivity.this, "Marker ya da Mesaj Eklenmedi!", Toast.LENGTH_SHORT).show();
                 else {
-                    String deviceName = Settings.Secure.getString(getContentResolver(), "bluetooth_name");
-                    markerManager.postMessage(new MessageType(deviceName, message, new LocationType(marker.getPosition().latitude, marker.getPosition().longitude)));
-                    marker.setTitle(deviceName);
+                    //String deviceName = Settings.Secure.getString(getContentResolver(), "bluetooth_name");
+                    String username = AppParameters.appUser.getUsername();
+                    markerManager.postMessage(new MessageType(message,username, marker.getPosition().latitude, marker.getPosition().longitude));
+                    marker.setTitle(username);
                     marker.setSnippet(message);
                     editText.setText("");
                     Toast.makeText(getApplicationContext(), "Mesaj Oluşturuldu.", Toast.LENGTH_SHORT).show();
+                    marker.remove();
                     closeKeyboard();
                     //getDistMessages(marker.getPosition().latitude, marker.getPosition().longitude);
                 }
@@ -232,10 +143,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         instance = this;
-
-
-
-
+        //startActivity(i);
     }
 
 
@@ -250,25 +158,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.setOnMyLocationButtonClickListener(this);
                 mMap.setOnMyLocationClickListener(this);
 
-                /*LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                Criteria criteria = new Criteria();
-                locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-                Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
-                if (location != null) {
-                    System.out.println("Merak " + location.getLatitude() + location.getLongitude());
-                    getDistMessages(location.getLatitude(), location.getLongitude());
-                }*/
-
             } catch (Exception e) {
-                System.out.println("Mavi nokta hatası" + e.getMessage());
+                Log.d("Mavi nokta hatası" , e.getMessage());
             }
         } else {
             button.setEnabled(false);
-            System.out.println("reddedildi 2");
             //verifyMapsPermissions(this);
-
-
-
         }
 
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -351,7 +246,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION);
 
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
+            // We don't have permission so prompt the userType
             ActivityCompat.requestPermissions(
                     activity,
                     PERMISSIONS_MAPS,
@@ -370,7 +265,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher_flag_location_red));
         this.marker = mMap.addMarker(newMarker);
         button.setEnabled(true);
-        System.out.println(latLng.latitude + "---" + latLng.longitude);
 
         switchLayoutProperty(0);
     }
@@ -411,4 +305,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        if (AppParameters.doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
+        AppParameters.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this,R.string.exit, Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                AppParameters.doubleBackToExitPressedOnce=false;
+            }
+        }, 2000);
+    }
+
+
+
 }

@@ -1,11 +1,12 @@
-package com.egemen.mapsdeneme;
+package com.egemen.mapsdeneme.model;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class User {
+public class UserType implements Serializable {
     @SerializedName("email")
     @Expose
     private String email;
@@ -24,11 +25,13 @@ public class User {
     @SerializedName("_id")
     @Expose
     private String id;
-    @SerializedName("isMarkerSeen")
+    @SerializedName("seenMessage")
     @Expose
-    private List<Object> isMarkerSeen = null;
+    private List<Object> seenMessage = null;
 
-    User(String username, String firstName, String lastName, String password, String email, String _id) {
+    public UserType(){}
+
+    public UserType(String username, String firstName, String lastName, String password, String email, String id) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -37,12 +40,17 @@ public class User {
         this.id = id;
     }
 
-    User(String username, String firstName, String lastName, String password, String email) {
+    public UserType(String username, String firstName, String lastName, String password, String email) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.password = password;
         this.email = email;
+    }
+
+    public UserType(String username, String password){
+        this.username = username;
+        this.password = password;
     }
 
     public void setEmail(String email) {
@@ -69,8 +77,8 @@ public class User {
         this.id = id;
     }
 
-    public void setIsMarkerSeen(List<Object> isMarkerSeen) {
-        this.isMarkerSeen = isMarkerSeen;
+    public void setSeenMessage(List<Object> seenMessage) {
+        this.seenMessage = seenMessage;
     }
 
     public String getEmail() {
@@ -97,25 +105,19 @@ public class User {
         return id;
     }
 
-    public List<Object> getIsMarkerSeen() {
-        return isMarkerSeen;
+    public List<Object> getSeenMessage() {
+        return seenMessage;
     }
 
     @Override
     public String toString(){
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.password = password;
-        this.email = email;
-        this.id = id;
         return "Username:"+username+
                 "\nFirst Name:"+firstName+
                 "\nLast Name:"+ lastName+
                 "\nPassword:"+password+
                 "\nEmail:"+email+
                 "\nId:"+id+
-                "\nIs Marker Seen:"+isMarkerSeen;
+                "\nIs Marker Seen:"+ seenMessage;
 
     }
 }
