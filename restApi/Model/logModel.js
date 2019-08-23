@@ -1,13 +1,29 @@
 var mongoose = require('mongoose');
-
+var integerValidator = require('mongoose-integer'); 
 var logSchema = mongoose.Schema({
 
-  deviceProperties : {
-      type : String,
+  errorMessage:{
+  	type:String
   },
 
   stackTrace : {
-      type : String,
+      type : String
+  },
+
+  versionRelease:{
+  	type:String
+  },
+  versionSdk : {
+      type : Number,
+      integer: true
+  },
+
+  mark : {
+      type : String
+  },
+
+  model : {
+      type : String
   }
 });
 

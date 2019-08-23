@@ -29,16 +29,16 @@ router.route('/users')
 router.route('/users/login')
     .post(userController.login);
 
-router.route('/users/id')
-    .get(userController.index);
+router.route('/users/:id')
+    .get(userController.read)
+    .patch(userController.update);
 
 router.route('/users/checkMessages')
     .post(userController.checkMessages);
 
-router.route('/users/login')
-   .post(userController.login);
-
 router.route('/logs')
-    .post(logController.new);
+    .post(logController.new)
+    .get(logController.index);
+    
 
 module.exports = router;
