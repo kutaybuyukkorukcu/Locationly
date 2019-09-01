@@ -90,6 +90,7 @@ exports.update = function(req, res) {
 };
 
 exports.checkMessages = async function(req, res) {
+	console.log("Calistiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
  var newMessages = [];
  var searchQuery = {
    location: {

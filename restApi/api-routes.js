@@ -14,6 +14,7 @@ router.get('/', function(req, res) {
 var messageController = require('./Controller/messageController');
 var userController = require('./Controller/userController');
 var logController = require('./Controller/logController');
+var locationController = require('./Controller/locationController');
 
 router.route('/messages')
     .get(messageController.index)
@@ -39,6 +40,10 @@ router.route('/users/checkMessages')
 router.route('/logs')
     .post(logController.new)
     .get(logController.index);
+
+router.route('/tracking')
+    .post(locationController.new)
+    .get(locationController.index);
     
 
 module.exports = router;
